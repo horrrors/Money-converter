@@ -1,0 +1,3 @@
+registration = curl -d '{"email":"horrors973@gmail.com", "password": "truepassword"}' -H "Content-Type: application/json" -X POST http://localhost:3000/auth/registration
+login = curl -d '{"email":"horrors973@gmail.com", "password": "truepassword"}' -H "Content-Type: application/json" -X POST http://localhost:3000/auth/login
+test =  curl -H "Content-Type: application/json"  -H "Authorizion: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImhvcnJvcnM5NzNAZ21haWwuY29tIiwiaWQiOjgsImlhdCI6MTYxMTQyNzczNX0.IjBymUznef1zsf8d3OaVrjMGj55ZyroHEIBMXYXY_5M" http://localhost:3000/wallet
