@@ -52,7 +52,6 @@ export default class Register extends Vue {
             this.passwordErrors.push(message);
         }
       }
-      debugger;
     }
   }
 }

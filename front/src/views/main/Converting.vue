@@ -185,7 +185,6 @@ export default class Converting extends Vue {
         amount: this.amount,
         date_time: this.dateUntil,
       };
-      debugger;
       try {
         await this["$store"].dispatch(
           "convertOrder/createConvertOrder",
@@ -209,7 +208,6 @@ export default class Converting extends Vue {
         alert("Not enought money");
         this.amount = +this.from.amount;
         amount = this.from.amount;
-        debugger;
       }
       this.rateHint = `${amount} ${this.from.type} = ${Number(
         this.rate * amount
