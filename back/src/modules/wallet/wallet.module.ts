@@ -10,5 +10,6 @@ import { WalletEntity } from './models/wallet.entity';
         WalletController,],
     providers: [
         WalletService,],
+    exports: [WalletService]
 })
 export class WalletModule { }

@@ -4,6 +4,8 @@ import {
     Column,
 
 } from 'typeorm';
+import { Transform } from 'class-transformer';
+
 import { MoneyTypes } from '../enums/MoneyTypes';
 
 @Entity('Wallet')
@@ -20,6 +22,7 @@ export class WalletEntity {
     type: MoneyTypes
 
     @Column({ type: "decimal", default: 0 })
+    @Transform(({ value }) => Number(value))
     amount: number
 
 

@@ -54,15 +54,40 @@
           <v-list-item three-line>
             <v-list-item-content>
               <v-text-field
-                v-model="amount"
+                v-model.number="amount"
                 :rules="decimalRules"
                 label="amount"
                 @change="amountChanged"
+                type="number"
                 required
               ></v-text-field>
-              <p class="font-weight-light">{{ rateHint }}</p>
+              <p class="font-weight-regular">{{ rateHint }}</p>
+              <v-text-field
+                type="number"
+                v-model.number="desiredRate"
+                :rules="decimalRules"
+                label="Desired rate "
+                required
+              ></v-text-field>
+              <calendar @changeDate="changeDate" />
             </v-list-item-content>
           </v-list-item>
+          <v-card-actions>
+            <v-btn
+              class="action-button"
+              :loading="creating"
+              :disabled="creating"
+              color="info"
+              @click="createConvertOrder"
+            >
+              Create order
+              <template v-slot:loader>
+                <span class="custom-loader">
+                  <v-icon light>mdi-cached</v-icon>
+                </span>
+              </template>
+            </v-btn>
+          </v-card-actions>
         </v-card>
       </v-col>
     </v-container>
@@ -74,16 +99,26 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { mdiArrowDownBold } from "@mdi/js";
 import { Wallet } from "../../store/modules/wallet/interfaces/Wallet";
-import { getMoneyRate } from "../../utils/MoneyRate";
+import { GetExchangeRateDto } from "../../store/modules/convertOrder/interfaces/GetExchangeRateDto";
+import Calendar from "../../components/Calendar.vue";
+import { CreateConvertOrderDto } from "../../store/modules/convertOrder/interfaces/CreateConvertOrderDto";
 
-@Component
+@Component({
+  components: {
+    Calendar,
+  },
+})
 export default class Converting extends Vue {
   from: Wallet | null = null;
   to: Wallet | null = null;
   amount = 0;
+  desiredRate: number | null = null;
   rate = 0;
   rateLoaded = false;
   rateHint = "";
+  dateUntil: Date | null = null;
+  loader = null;
+  creating = false;
 
   get fromWallets() {
     if (this.to) {
@@ -109,29 +144,82 @@ export default class Converting extends Vue {
     return !!this.from && this.to;
   }
 
+  get canSendToCreate() {
+    return (
+      this.from && this.to && this.desiredRate && this.amount && this.dateUntil
+    );
+  }
+
   async walletSelected() {
     if (this.from && this.to) {
-      const { data } = await getMoneyRate(this.from.type, this.to.type);
+      try {
+        const getExchangeRateDto: GetExchangeRateDto = {
+          from: this.from.type,
+          to: this.to.type,
+        };
+        const { rate } = await this["$store"].dispatch(
+          "convertOrder/getExchangeRate",
+          getExchangeRateDto
+        );
 
-      this.rate = data["Realtime Currency Exchange Rate"]["5. Exchange Rate"];
-      this.rateHint = `1 ${this.from.type} = ${Number(this.rate)} ${
-        this.to.type
-      }`;
-      this.rateLoaded = true;
+        this.rate = rate;
+        this.desiredRate = this.rate;
+        this.rateHint = `Current rate: 1 ${this.from.type} = ${Number(
+          this.rate
+        )} ${this.to.type}`;
+        this.rateLoaded = true;
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  }
+
+  async createConvertOrder() {
+    if (this.from && this.to && this.desiredRate && this.dateUntil) {
+      this.creating = true;
+
+      const createConvertOrderDto: CreateConvertOrderDto = {
+        id_from: this.from.id,
+        id_to: this.to.id,
+        desired_rate: this.desiredRate,
+        amount: this.amount,
+        date_time: this.dateUntil,
+      };
+      debugger;
+      try {
+        await this["$store"].dispatch(
+          "convertOrder/createConvertOrder",
+          createConvertOrderDto
+        );
+        this.from = null;
+        this.to = null;
+        this.amount = 0;
+        this.rateLoaded = false;
+        alert("Order created.");
+      } catch (error) {
+        console.log(error);
+      }
+      this.creating = false;
     }
   }
 
   amountChanged(amount: number) {
     if (this.from && this.to) {
       if (amount > this.from.amount) {
-        alert("Not enougth money");
-        this.amount = this.from.amount;
+        alert("Not enought money");
+        this.amount = +this.from.amount;
         amount = this.from.amount;
+        debugger;
       }
       this.rateHint = `${amount} ${this.from.type} = ${Number(
         this.rate * amount
       )} ${this.to.type}`;
     }
+    // this.amount = Number(this.amount);
+  }
+
+  changeDate(date: Date) {
+    this.dateUntil = date;
   }
 
   isDecimalRegex = /^((\d+\.?|\.(?=\d))?\d{0,3}).$/;
@@ -153,5 +241,15 @@ export default class Converting extends Vue {
   display: block !important;
   margin-left: auto;
   margin-right: auto;
+}
+.action-button {
+  margin-left: auto;
+  margin-right: auto;
+}
+.font-weight-regular {
+  /* margin-top: 10px; */
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-bottom: 10px !important;
 }
 </style>

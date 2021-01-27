@@ -20,6 +20,7 @@ const actions: ActionTree<AuthState, AuthState> = {
       console.log('registred', result)
     } catch (err) {
       console.log(err)
+      throw err
     }
   },
   async login({ commit }, loginDto: LoginDto) {
@@ -30,6 +31,7 @@ const actions: ActionTree<AuthState, AuthState> = {
       axios.defaults.headers.authorization = `bearer ${token}`
     } catch (err) {
       console.log(err)
+
     }
   },
   async logout({ commit }) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, ClassSerializerInterceptor, Controller, Get, Post, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from '../../../src/utils/utils';
 import { UserDto } from '../user/dto/UserDto';
@@ -13,6 +13,7 @@ export class WalletController {
     ) { }
 
     @UseGuards(AuthGuard('jwt'))
+    @UseInterceptors(ClassSerializerInterceptor)
     @Get()
     getAll(@User() user: UserDto): Promise<WalletEntity[]> {
         return this.walletServise.getAllUserWallets(user)
